@@ -1,0 +1,49 @@
+# Python bytecode and caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# macOS and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Generated runtime artifacts
+db/nifty100.db
+db/*.db
+db/*.sqlite
+db/*.sqlite3
+db/*.db-wal
+db/*.db-shm
+output/*
+!output/.gitkeep
+
+# Local logs and reports
+*.log
+*.tmp
+*.bak
+
+# Raw SEC text archive and workbook source data
+2025q4/
+sub.txt
+pre.txt
+tag.txt
+num.txt
+Index_NIFTY 100.xlsx
+
+# Local env overrides
+.env
+.env.local
+.env.*.local
