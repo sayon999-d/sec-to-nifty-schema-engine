@@ -20,9 +20,11 @@ if __package__ in {None, ""}:
     if str(SRC_ROOT) not in sys.path:
         sys.path.insert(0, str(SRC_ROOT))
     from etl.normaliser import normalize_ticker, normalize_year
+    from etl.sprint2_runner import Sprint2RatioEngine
     from etl.validator import DQValidator, ValidationError
 else:
     from .normaliser import normalize_ticker, normalize_year
+    from .sprint2_runner import Sprint2RatioEngine
     from .validator import DQValidator, ValidationError
 
 
@@ -833,73 +835,9 @@ class ETLLoader:
         return pd.DataFrame(rows)
 
     def _derive_ratios(self, conn: sqlite3.Connection) -> tuple[pd.DataFrame, pd.DataFrame]:
-        pnl = pd.read_sql_query(
-            """
-            SELECT company_id, financial_year, revenue, operating_profit, net_income, eps, operating_profit_margin
-            FROM profitandloss
-            ORDER BY company_id, financial_year;
-            """.strip(),
-            conn,
-        )
-        bs = pd.read_sql_query(
-            """
-            SELECT company_id, financial_year, total_assets, total_liabilities, total_equity, current_assets, current_liabilities, debt
-            FROM balancesheet
-            ORDER BY company_id, financial_year;
-            """.strip(),
-            conn,
-        )
-        cf = pd.read_sql_query(
-            """
-            SELECT company_id, financial_year, net_cash_flow
-            FROM cashflow
-            ORDER BY company_id, financial_year;
-            """.strip(),
-            conn,
-        )
-        latest = pd.merge(pnl, bs, on=["company_id", "financial_year"], how="outer", suffixes=("_pnl", "_bs"))
-        latest = pd.merge(latest, cf, on=["company_id", "financial_year"], how="left")
-        if latest.empty:
-            return pd.DataFrame(), pd.DataFrame()
-
-        ratios_rows: list[dict[str, Any]] = []
-        peers_rows: list[dict[str, Any]] = []
-        for row in latest.fillna(0).itertuples(index=False):
-            debt_to_equity = round((float(row.debt) or 0.0) / max(float(row.total_equity) or 1.0, 1.0), 6)
-            current_ratio = round((float(row.current_assets) or 0.0) / max(float(row.current_liabilities) or 1.0, 1.0), 6)
-            interest_coverage_ratio = round((abs(float(row.operating_profit) or 0.0) + 1.0) / 10.0, 6)
-            gross_margin = round((abs(float(row.operating_profit) or 0.0) + 1.0) / max(float(row.revenue) or 1.0, 1.0), 6)
-            net_margin = round((abs(float(row.net_income) or 0.0) + 1.0) / max(float(row.revenue) or 1.0, 1.0), 6)
-            roe = round((float(row.net_income) or 0.0) / max(float(row.total_equity) or 1.0, 1.0), 6)
-            roa = round((float(row.net_income) or 0.0) / max(float(row.total_assets) or 1.0, 1.0), 6)
-            peer_code = f"PG-{int(row.company_id):03d}"
-            ratios_rows.append(
-                {
-                    "company_id": int(row.company_id),
-                    "financial_year": int(row.financial_year),
-                    "gross_margin": gross_margin,
-                    "operating_margin": round(float(row.operating_profit_margin) or 0.0, 6),
-                    "net_margin": net_margin,
-                    "debt_to_equity": debt_to_equity,
-                    "current_ratio": current_ratio,
-                    "interest_coverage_ratio": interest_coverage_ratio,
-                    "return_on_equity": roe,
-                    "return_on_assets": roa,
-                    "peer_group_code": peer_code,
-                    "peer_group_name": f"Peer Group {int(row.company_id):03d}",
-                    "source_ref": "ratios",
-                }
-            )
-            peers_rows.append(
-                {
-                    "company_id": int(row.company_id),
-                    "financial_year": int(row.financial_year),
-                    "peer_group_code": peer_code,
-                    "peer_group_name": f"Peer Group {int(row.company_id):03d}",
-                    "source_ref": "peer_groups",
-                }
-            )
-        return pd.DataFrame(ratios_rows), pd.DataFrame(peers_rows)
+        engine = Sprint2RatioEngine(self.db_path, self.output_dir)
+        engine.ensure_schema(conn)
+        return engine._build_ratio_rows(conn)
 
     def _write_audit_log(self, metrics: list[TableMetrics]) -> None:
         audit_path = self.output_dir / "load_audit.csv"

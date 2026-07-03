@@ -1,9 +1,9 @@
 SHELL := /bin/sh
-PYTHON ?= python
 PROJECT_ROOT := $(CURDIR)
+PYTHON ?= ../.venv/bin/python
 export PYTHONPATH := $(PROJECT_ROOT)/src
 
-.PHONY: load ratios test assert report dashboard api clean
+.PHONY: load ratios test assert sprint2-ratios sprint2-assert report dashboard api clean
 
 load:
 	$(PYTHON) src/etl/loader.py load
@@ -11,11 +11,17 @@ load:
 ratios:
 	$(PYTHON) src/etl/loader.py ratios
 
+sprint2-ratios:
+	$(PYTHON) src/etl/loader.py ratios
+
 test:
 	$(PYTHON) -m pytest -v tests/etl/test_normaliser.py
 
 assert:
 	$(PYTHON) tests/run_sprint1_assertions.py
+
+sprint2-assert:
+	$(PYTHON) tests/run_sprint2_assertions.py
 
 report:
 	$(PYTHON) src/etl/loader.py report
