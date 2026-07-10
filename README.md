@@ -26,6 +26,17 @@ It then normalizes, validates, and materializes the final relational tables requ
 ## Architecture
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#F5F5F5",
+    "primaryTextColor": "#1F2937",
+    "primaryBorderColor": "#9CA3AF",
+    "lineColor": "#6B7280",
+    "secondaryColor": "#E5E7EB",
+    "tertiaryColor": "#FFFFFF"
+  }
+}}%%
 flowchart LR
     A[sub.txt] --> B[Company seeding]
     C[pre.txt] --> D[Statement mapping]
@@ -191,15 +202,15 @@ flowchart LR
 
 ## Sprint 2 Summary
 
-| Focus | Deliverable |
-| --- | --- |
-| Ratio engine foundation | Implement profitability, leverage, efficiency, and debt-service formulas with safe error boundaries. |
-| CAGR engine | Add 3-year, 5-year, and 10-year CAGR calculations with explicit edge-case flags. |
-| Cash-flow KPIs | Build free cash flow, CFO quality, capex intensity, and FCF conversion metrics. |
-| Capital allocation classifier | Map CFO/CFI/CFF signs to the 8-pattern matrix and export `capital_allocation.csv`. |
-| Database hydration | Populate `financial_ratios` from SQLite rows and cross-check benchmark variance. |
-| Unit testing | Add pytest coverage for denominators, negative equity, turnaround flags, and debt-free logic. |
-| Verification gate | Run the strict Sprint 2 assertion script and confirm all artifacts are populated correctly. |
+| Focus                         | Deliverable                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Ratio engine foundation       | Implement profitability, leverage, efficiency, and debt-service formulas with safe error boundaries. |
+| CAGR engine                   | Add 3-year, 5-year, and 10-year CAGR calculations with explicit edge-case flags.                     |
+| Cash-flow KPIs                | Build free cash flow, CFO quality, capex intensity, and FCF conversion metrics.                      |
+| Capital allocation classifier | Map CFO/CFI/CFF signs to the 8-pattern matrix and export`capital_allocation.csv`.                  |
+| Database hydration            | Populate`financial_ratios` from SQLite rows and cross-check benchmark variance.                    |
+| Unit testing                  | Add pytest coverage for denominators, negative equity, turnaround flags, and debt-free logic.        |
+| Verification gate             | Run the strict Sprint 2 assertion script and confirm all artifacts are populated correctly.          |
 
 ## Sprint 2 Execution Flow
 
@@ -214,3 +225,130 @@ flowchart LR
 - The historical analysis window is bounded to real loaded years only.
 - Capital allocation signs are exported as string symbols: `+`, `-`, and `0`.
 - The export is row-safe, deduplicated by `company_id/year`, and written with `index=False`.
+
+---
+
+## SPRINT 3 — SCREENER & PEER COMPARISON ENGINE
+
+Sprint 3 completes the analytics layer of the `nifty100_ingestion` platform by adding a production-grade investment screener, sector-relative composite scoring, peer percentile comparison matrices, and radar visualizations. The implementation is intentionally bounded to the SQLite source of truth in `db/nifty100.db` and produces deterministic, auditable deliverables for analyst review.
+
+### Component Architecture
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#F5F5F5",
+    "primaryTextColor": "#1F2937",
+    "primaryBorderColor": "#9CA3AF",
+    "lineColor": "#6B7280",
+    "secondaryColor": "#E5E7EB",
+    "tertiaryColor": "#FFFFFF"
+  }
+}}%%
+flowchart LR
+    classDef ingest fill:#F3F4F6,stroke:#9CA3AF,color:#111827;
+    classDef core fill:#E7E5E4,stroke:#78716C,color:#111827;
+    classDef output fill:#FEF3C7,stroke:#D97706,color:#111827;
+
+    subgraph Ingestion_Layer["Ingestion Layer"]
+        A[(db/nifty100.db)] --> B[financial_ratios]
+        A --> C[companies]
+        A --> D[cashflow]
+    end
+
+    subgraph Screener_Core["Core Engine: src/screener/engine.py"]
+        E[config/screener_config.yaml] --> F[Preset Rule Loader]
+        B --> G[Load Active Company-Year Rows]
+        C --> G
+        D --> G
+        G --> H[P10 / P90 Winsorization]
+        H --> I[Sector-Relative Normalization]
+        I --> J[Weighted Composite Quality Score<br/>0 - 100]
+        J --> K[6 Preset Screeners]
+        K --> L[output/screener_output.xlsx]
+    end
+
+    subgraph Peer_Core["Peer Engine: src/analytics/peer.py"]
+        B --> M[Latest Company-Year Snapshot]
+        C --> M
+        M --> N[Peer Group Mapping]
+        N --> O[Inverted PERCENT_RANK Matrix]
+        O --> P[peer_percentiles SQLite Table]
+        O --> Q[output/peer_comparison.xlsx]
+        O --> R[reports/radar_charts/*.png]
+    end
+
+    L --> S[Analyst Review]
+    Q --> S
+    R --> S
+    P --> S
+
+    class A,B,C,D ingest;
+    class E,F,G,H,I,J,K,L,M,N,O,P,Q,R core;
+    class S output;
+
+    style Ingestion_Layer fill:#FAFAFA,stroke:#BDBDBD,color:#111827
+    style Screener_Core fill:#F5F5F4,stroke:#BDBDBD,color:#111827
+    style Peer_Core fill:#FFF7ED,stroke:#BDBDBD,color:#111827
+```
+
+### Composite Health Score Specification
+
+The composite quality score is calculated on a `0-100` scale using the following weighted structure:
+
+| Pillar        | Metric                                | Weight |
+| ------------- | ------------------------------------- | -----: |
+| Profitability | Return on Equity (`ROE`)            |    15% |
+| Profitability | Return on Capital Employed (`ROCE`) |    10% |
+| Profitability | Net Profit Margin (`NPM`)           |    10% |
+| Cash Quality  | Free Cash Flow CAGR (`FCF CAGR`)    |    15% |
+| Cash Quality  | CFO / PAT Ratio                       |    10% |
+| Cash Quality  | Free Cash Flow Positive Flag          |     5% |
+| Growth        | Revenue CAGR                          |    10% |
+| Growth        | PAT CAGR                              |    10% |
+| Leverage      | Debt-to-Equity Score                  |    10% |
+| Leverage      | Interest Coverage Ratio Score         |     5% |
+
+**Winsorization method**
+
+Before scaling metrics into the composite score, Sprint 3 applies **P10/P90 winsorization** within each `broad_sector`. This caps the bottom 10th percentile and top 90th percentile of each metric to reduce the effect of extreme outliers while preserving the rank order of the majority of companies. The result is a more stable, sector-relative score profile that avoids over-rewarding one-off anomalies.
+
+### Screener Presets Registry
+
+The platform now supports the following six preset investment screeners:
+
+| Preset              | Criteria                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| Quality Compounder  | `ROE > 15%`, `D/E < 1.0`, `FCF > 0`, `Revenue CAGR 5yr > 10%`              |
+| Value Pick          | `P/E < 20`, `P/B < 3.0`, `D/E < 2.0`, `Dividend Yield > 1%`                |
+| Growth Accelerator  | `PAT CAGR 5yr > 20%`, `Revenue CAGR 5yr > 15%`, `D/E < 2.0`                  |
+| Dividend Champion   | `Dividend Yield > 2%`, `Dividend Payout < 80%`, `FCF > 0`                    |
+| Debt-Free Blue Chip | `D/E == 0`, `ROE > 12%`, `Revenue > 5000 Crore`                              |
+| Turnaround Watch    | `Revenue CAGR 3yr > 10%`, `FCF positive in latest year`, `D/E declining YoY` |
+
+### Output Deliverables
+
+Sprint 3 writes the following production artifacts:
+
+| Deliverable                     | Description                                                       |
+| ------------------------------- | ----------------------------------------------------------------- |
+| `output/screener_output.xlsx` | Six-sheet investment screener workbook, sorted by composite score |
+| `output/peer_comparison.xlsx` | Eleven-sheet peer comparison workbook with percentile ranks       |
+| `reports/radar_charts/*.png`  | 92 radar plot visual assets, one per company                      |
+
+### DevOps Orchestration Updates
+
+The Makefile now includes Sprint 3 execution targets for rapid local verification and analyst delivery:
+
+| Target                  | Purpose                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------- |
+| `make sprint3-run`    | Triggers screener filters, percentile rank generation, and radar chart export loops   |
+| `make sprint3-assert` | Runs the Sprint 3 integration validation gatekeeper and confirms the output artifacts |
+
+### Sprint 3 Operating Notes
+
+- The screener and peer engines operate directly from `db/nifty100.db`.
+- Sector carve-outs are enforced natively, including the Financials exception for leverage analysis.
+- All exports are deterministic and designed for repeatable audit trails.
+- The radar chart layer provides a compact visual summary of each company against its peer-group reference profile.
