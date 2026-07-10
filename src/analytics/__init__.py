@@ -7,6 +7,7 @@ from .cashflow_kpis import (
     fcf_conversion_rate,
     free_cash_flow,
 )
+from .peer import build_peer_percentiles, generate_peer_reports
 from .ratios import (
     asset_turnover,
     debt_to_equity,
@@ -18,4 +19,3 @@ from .ratios import (
     return_on_capital_employed,
     return_on_equity,
 )
-

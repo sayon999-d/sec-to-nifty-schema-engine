@@ -3,7 +3,7 @@ PROJECT_ROOT := $(CURDIR)
 PYTHON ?= ../.venv/bin/python
 export PYTHONPATH := $(PROJECT_ROOT)/src
 
-.PHONY: load ratios test assert sprint2-ratios sprint2-assert report dashboard api clean
+.PHONY: load ratios test assert sprint2-ratios sprint2-assert sprint3-screen sprint3-peer sprint3-assert report dashboard api clean
 
 load:
 	$(PYTHON) src/etl/loader.py load
@@ -22,6 +22,15 @@ assert:
 
 sprint2-assert:
 	$(PYTHON) tests/run_sprint2_assertions.py
+
+sprint3-screen:
+	$(PYTHON) -c "from screener.engine import run_screener_reports; run_screener_reports()"
+
+sprint3-peer:
+	$(PYTHON) -c "from analytics.peer import generate_peer_reports; generate_peer_reports()"
+
+sprint3-assert:
+	$(PYTHON) tests/run_sprint3_assertions.py
 
 report:
 	$(PYTHON) src/etl/loader.py report
