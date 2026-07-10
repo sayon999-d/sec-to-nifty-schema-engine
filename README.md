@@ -189,17 +189,17 @@ flowchart LR
     I --> J
 ```
 
-## Day-Wise Tasks
+## Sprint 2 Summary
 
-| Day | Focus | Deliverable |
-| --- | --- | --- |
-| Day 08 | Ratio engine foundation | Implement profitability, leverage, efficiency, and debt-service formulas with safe error boundaries. |
-| Day 09 | CAGR engine | Add 3-year, 5-year, and 10-year CAGR calculations with explicit edge-case flags. |
-| Day 10 | Cash-flow KPIs | Build free cash flow, CFO quality, capex intensity, and FCF conversion metrics. |
-| Day 11 | Capital allocation classifier | Map CFO/CFI/CFF signs to the 8-pattern matrix and export `capital_allocation.csv`. |
-| Day 12 | Database hydration | Populate `financial_ratios` from SQLite rows and cross-check benchmark variance. |
-| Day 13 | Unit testing | Add pytest coverage for denominators, negative equity, turnaround flags, and debt-free logic. |
-| Day 14 | Verification gate | Run the strict Sprint 2 assertion script and confirm all artifacts are populated correctly. |
+| Focus | Deliverable |
+| --- | --- |
+| Ratio engine foundation | Implement profitability, leverage, efficiency, and debt-service formulas with safe error boundaries. |
+| CAGR engine | Add 3-year, 5-year, and 10-year CAGR calculations with explicit edge-case flags. |
+| Cash-flow KPIs | Build free cash flow, CFO quality, capex intensity, and FCF conversion metrics. |
+| Capital allocation classifier | Map CFO/CFI/CFF signs to the 8-pattern matrix and export `capital_allocation.csv`. |
+| Database hydration | Populate `financial_ratios` from SQLite rows and cross-check benchmark variance. |
+| Unit testing | Add pytest coverage for denominators, negative equity, turnaround flags, and debt-free logic. |
+| Verification gate | Run the strict Sprint 2 assertion script and confirm all artifacts are populated correctly. |
 
 ## Sprint 2 Execution Flow
 
