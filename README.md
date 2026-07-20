@@ -352,3 +352,38 @@ The Makefile now includes Sprint 3 execution targets for rapid local verificatio
 - Sector carve-outs are enforced natively, including the Financials exception for leverage analysis.
 - All exports are deterministic and designed for repeatable audit trails.
 - The radar chart layer provides a compact visual summary of each company against its peer-group reference profile.
+
+---
+
+## SPRINT 4 — STREAMLIT DASHBOARD & VALUATION MODULE
+
+Sprint 4 adds the interactive analyst workspace and the offline valuation engine. The dashboard is structured as a multi-page Streamlit application, while the valuation module compiles sector-relative valuation signals from the SQLite warehouse and supplemental market-cap inputs.
+
+### Launch Commands
+
+| Target | Purpose |
+| --- | --- |
+| `make sprint4-valuation` | Runs the offline valuation processing module and writes valuation deliverables to `output/` |
+| `make sprint4-dashboard` | Starts the Streamlit dashboard locally on port `8501` |
+
+### Dashboard Navigation Guide
+
+Use the sidebar to move between the eight dashboard screens:
+
+| Screen | Purpose |
+| --- | --- |
+| `01_home.py` | Platform overview, summary KPIs, sector donut chart, and top composite scores |
+| `02_profile.py` | Company profile explorer with historical KPI and trend visualizations |
+| `03_screener.py` | Interactive screener with slider filters and preset templates |
+| `04_peers.py` | Peer-group radar comparison and benchmark matrix |
+| `05_trends.py` | Multi-metric trend analysis with YoY annotations |
+| `06_sectors.py` | Macro sector bubble analysis and median KPI views |
+| `07_capital.py` | Capital allocation treemap and pattern drilldown |
+| `08_reports.py` | Filing-year document hub and report availability checks |
+
+### Sprint 4 Operating Notes
+
+- The dashboard reads directly from `db/nifty100.db` through cached connector utilities.
+- Retrieval functions are cached for 600 seconds to keep page interaction fast and stable.
+- Missing valuation inputs are handled gracefully, with `N/A` displayed in place of unavailable values.
+- The application is designed to run from `src/dashboard/app.py` with Streamlit’s built-in multipage support.

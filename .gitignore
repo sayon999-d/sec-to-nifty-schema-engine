@@ -47,3 +47,5 @@ Index_NIFTY 100.xlsx
 .env
 .env.local
 .env.*.local
+
+output/
