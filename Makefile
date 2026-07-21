@@ -3,7 +3,7 @@ PROJECT_ROOT := $(CURDIR)
 PYTHON ?= ../.venv/bin/python
 export PYTHONPATH := $(PROJECT_ROOT)/src
 
-.PHONY: load ratios test assert sprint2-ratios sprint2-assert sprint3-screen sprint3-peer sprint3-assert report dashboard api clean
+.PHONY: load ratios test assert sprint2-ratios sprint2-assert sprint3-screen sprint3-peer sprint3-assert sprint4-valuation sprint4-dashboard sprint5-nlp-parse sprint5-nlp-rules sprint5-cashflow sprint5-pdf-batch sprint5-build-all sprint6-clustering sprint6-api-start sprint6-test-suite sprint6-build-all report dashboard api clean
 
 load:
 	$(PYTHON) src/etl/loader.py load
@@ -31,6 +31,43 @@ sprint3-peer:
 
 sprint3-assert:
 	$(PYTHON) tests/run_sprint3_assertions.py
+
+sprint4-valuation:
+	$(PYTHON) src/analytics/valuation.py
+
+sprint4-dashboard:
+	$(PYTHON) -m streamlit run src/dashboard/app.py --server.port 8501
+
+sprint5-nlp-parse:
+	$(PYTHON) src/nlp/parser.py
+
+sprint5-nlp-rules:
+	$(PYTHON) src/nlp/pros_cons_generator.py
+
+sprint5-cashflow:
+	$(PYTHON) src/analytics/cashflow_kpis.py
+
+sprint5-pdf-batch:
+	$(PYTHON) -c "from reports.tearsheet import generate_tearsheets; from reports.sector_report import generate_sector_reports; from reports.portfolio import generate_portfolio_summary; generate_tearsheets(); generate_sector_reports(); generate_portfolio_summary()"
+
+sprint5-build-all:
+	$(PYTHON) src/nlp/parser.py
+	$(PYTHON) src/nlp/pros_cons_generator.py
+	$(PYTHON) src/analytics/cashflow_kpis.py
+	$(PYTHON) -c "from reports.tearsheet import generate_tearsheets; from reports.sector_report import generate_sector_reports; from reports.portfolio import generate_portfolio_summary; generate_tearsheets(); generate_sector_reports(); generate_portfolio_summary()"
+
+sprint6-clustering:
+	$(PYTHON) src/analytics/clustering.py
+
+sprint6-api-start:
+	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+sprint6-test-suite:
+	$(PYTHON) -m pytest tests/ --html=reports/pytest_report.html
+
+sprint6-build-all:
+	$(PYTHON) src/analytics/clustering.py
+	$(PYTHON) -m pytest tests/ --html=reports/pytest_report.html
 
 report:
 	$(PYTHON) src/etl/loader.py report

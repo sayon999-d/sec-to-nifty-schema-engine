@@ -49,3 +49,6 @@ Index_NIFTY 100.xlsx
 .env.*.local
 
 output/
+reports/tearsheets/
+reports/sector/
+reports/portfolio/

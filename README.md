@@ -228,36 +228,6 @@ flowchart LR
 
 ---
 
-## Sprint 5 — NLP, Cash Flow Intelligence & Automated Document Generation
-
-Sprint 5 extends the platform with rule-based NLP sentiment generation, cash flow intelligence scoring, and institutional-grade PDF compilation. The pipeline is fully anchored to `db/nifty100.db` and produces deterministic, auditable outputs for every company in the index universe.
-
-### Overview
-
-- Automated NLP sentiment insight generation from warehouse-backed financial signals.
-- Cash flow liquidity analysis with CFO quality, CapEx intensity, and distress detection.
-- Automated PDF document compilation for company tearsheets, sector summaries, and portfolio packs.
-
-### Key Deliverables & Outputs
-
-- `output/pros_cons_generated.csv` - heuristic Pro and Con insights generated for 100% of the index universe using 12 Pro rules and 12 Con rules.
-- `output/analysis_parsed.csv` - regex-extracted compounded growth and CAGR figures from unstructured text disclosures.
-- `output/cashflow_intelligence.xlsx` - 5-year CFO quality scores, CapEx intensity classifications, and capital allocation patterns across all 92 companies.
-- `output/distress_alerts.csv` - operational cash drain and financing anomaly warning log.
-- `reports/tearsheets/` - 92 individual 2-page institutional company tearsheet PDFs.
-- `reports/sector/` - 11 sector synthesis report PDFs.
-- `reports/portfolio/portfolio_summary.pdf` - comprehensive multi-page master portfolio summary.
-
-### CLI Execution
-
-Run the full PDF batch compilation with:
-
-```bash
-make sprint5-pdf-batch
-```
-
----
-
 ## SPRINT 3 — SCREENER & PEER COMPARISON ENGINE
 
 Sprint 3 completes the analytics layer of the `nifty100_ingestion` platform by adding a production-grade investment screener, sector-relative composite scoring, peer percentile comparison matrices, and radar visualizations. The implementation is intentionally bounded to the SQLite source of truth in `db/nifty100.db` and produces deterministic, auditable deliverables for analyst review.
@@ -417,3 +387,33 @@ Use the sidebar to move between the eight dashboard screens:
 - Retrieval functions are cached for 600 seconds to keep page interaction fast and stable.
 - Missing valuation inputs are handled gracefully, with `N/A` displayed in place of unavailable values.
 - The application is designed to run from `src/dashboard/app.py` with Streamlit’s built-in multipage support.
+
+---
+
+## Sprint 5 — NLP, Cash Flow Intelligence & Automated Document Generation
+
+Sprint 5 extends the platform with rule-based NLP sentiment generation, cash flow intelligence scoring, and institutional-grade PDF compilation. The pipeline is fully anchored to `db/nifty100.db` and produces deterministic, auditable outputs for every company in the index universe.
+
+### Overview
+
+- Automated NLP sentiment insight generation from warehouse-backed financial signals.
+- Cash flow liquidity analysis with CFO quality, CapEx intensity, and distress detection.
+- Automated PDF document compilation for company tearsheets, sector summaries, and portfolio packs.
+
+### Key Deliverables & Outputs
+
+- `output/pros_cons_generated.csv` - heuristic Pro and Con insights generated for 100% of the index universe using 12 Pro rules and 12 Con rules.
+- `output/analysis_parsed.csv` - regex-extracted compounded growth and CAGR figures from unstructured text disclosures.
+- `output/cashflow_intelligence.xlsx` - 5-year CFO quality scores, CapEx intensity classifications, and capital allocation patterns across all 92 companies.
+- `output/distress_alerts.csv` - operational cash drain and financing anomaly warning log.
+- `reports/tearsheets/` - 92 individual 2-page institutional company tearsheet PDFs.
+- `reports/sector/` - 11 sector synthesis report PDFs.
+- `reports/portfolio/portfolio_summary.pdf` - comprehensive multi-page master portfolio summary.
+
+### CLI Execution
+
+Run the full PDF batch compilation with:
+
+```bash
+make sprint5-pdf-batch
+```
