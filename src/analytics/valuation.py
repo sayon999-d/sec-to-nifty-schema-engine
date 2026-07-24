@@ -14,6 +14,7 @@ DB_PATH = APP_ROOT / "db" / "nifty100.db"
 OUTPUT_DIR = APP_ROOT / "output"
 MARKET_CAP_XLSX = OUTPUT_DIR / "market_cap.xlsx"
 SECTORS_XLSX = OUTPUT_DIR / "sectors.xlsx"
+RAW_INR_TO_CRORE = 10_000_000.0
 
 LOGGER = logging.getLogger(__name__)
 if not LOGGER.handlers:
@@ -302,11 +303,7 @@ def _export_market_cap_workbook(market_cap: pd.DataFrame) -> None:
     export = market_cap.merge(company_meta, on="company_id", how="left")
     export = export.merge(sectors, on="company_id", how="left")
     export = export.merge(latest_ratios, on=["company_id", "financial_year"], how="left")
-    export["fcf_yield_pct"] = np.where(
-        _safe_numeric(export["market_cap_crore"]).fillna(0) != 0,
-        (_safe_numeric(export["free_cash_flow_cr"]).fillna(0) / _safe_numeric(export["market_cap_crore"])) * 100.0,
-        np.nan,
-    )
+    export["fcf_yield_pct"] = _fcf_yield_pct(export["free_cash_flow_cr"], export["market_cap_crore"])
     export = export[
         [
             "company_id",
@@ -388,6 +385,17 @@ def _latest_ratio_history() -> pd.DataFrame:
 
 def _safe_numeric(series: pd.Series) -> pd.Series:
     return pd.to_numeric(series, errors="coerce")
+
+
+def _fcf_yield_pct(free_cash_flow_cr: pd.Series, market_cap_crore: pd.Series) -> pd.Series:
+    # Convert raw INR free cash flow into INR Crore before computing yield.
+    fcf = _safe_numeric(free_cash_flow_cr).fillna(0.0) / RAW_INR_TO_CRORE
+    market_cap = _safe_numeric(market_cap_crore)
+    valid = market_cap.notna() & (market_cap > 0)
+    result = pd.Series(np.nan, index=market_cap.index, dtype="float64")
+    result.loc[valid] = ((fcf.loc[valid] / market_cap.loc[valid]) * 100.0).round(2)
+    result.loc[(result > 1000) | (result < -1000)] = np.nan
+    return result
 
 
 def _pick_col(frame: pd.DataFrame, candidates: list[str]) -> str | None:
@@ -501,11 +509,7 @@ def build_valuation_summary() -> pd.DataFrame:
         latest["P/B"] = latest[pb_col]
 
     latest["EV/EBITDA"] = latest[ev_col] if ev_col else np.nan
-    latest["FCF_yield_pct"] = np.where(
-        _safe_numeric(latest["market_cap_crore"]).fillna(0) != 0,
-        (_safe_numeric(latest["free_cash_flow_cr"]).fillna(0) / _safe_numeric(latest["market_cap_crore"])) * 100.0,
-        np.nan,
-    )
+    latest["FCF_yield_pct"] = _fcf_yield_pct(latest["free_cash_flow_cr"], latest["market_cap_crore"])
 
     latest_history = history.copy()
     latest_history["pe_ratio"] = np.where(
