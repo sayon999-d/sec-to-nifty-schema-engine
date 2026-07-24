@@ -42,8 +42,8 @@ def _safe_read_excel(path: Path) -> pd.DataFrame:
     if resolved is None:
         return pd.DataFrame()
     try:
-        return pd.read_excel(resolved)
-    except Exception as exc:  # pragma: no cover - defensive I/O
+        return pd.read_excel(resolved, header=1)
+    except Exception as exc: 
         LOGGER.warning("Failed to read %s: %s", resolved, exc)
         return pd.DataFrame()
 
@@ -52,7 +52,7 @@ def _write_excel(path: Path, frame: pd.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         frame.to_excel(path, index=False)
-    except Exception as exc:  # pragma: no cover - defensive I/O
+    except Exception as exc: 
         LOGGER.warning("Failed to write %s: %s", path, exc)
 
 
@@ -112,6 +112,8 @@ def _market_cap_lookup() -> pd.DataFrame:
         with _connect() as conn:
             table_df = pd.read_sql_query("SELECT * FROM market_cap ORDER BY company_id, financial_year;", conn)
         if not table_df.empty:
+            if "is_simulated" not in table_df.columns:
+                table_df["is_simulated"] = 0
             return table_df
 
     df = _safe_read_excel(MARKET_CAP_XLSX)
@@ -123,6 +125,8 @@ def _market_cap_lookup() -> pd.DataFrame:
                 rename_map[cols[expected]] = expected
         if rename_map:
             df = df.rename(columns=rename_map)
+        if "is_simulated" not in df.columns:
+            df["is_simulated"] = 0
         return df
 
     LOGGER.info("market_cap source unavailable; valuation will build it from warehouse data")
@@ -131,7 +135,7 @@ def _market_cap_lookup() -> pd.DataFrame:
 
 def _latest_stock_prices() -> pd.DataFrame:
     with _connect() as conn:
-        return pd.read_sql_query(
+        frame = pd.read_sql_query(
             """
             WITH ranked AS (
                 SELECT
@@ -152,6 +156,9 @@ def _latest_stock_prices() -> pd.DataFrame:
             """,
             conn,
         )
+    if not frame.empty and "is_simulated" not in frame.columns:
+        frame["is_simulated"] = 0
+    return frame
 
 
 def _latest_equity_and_eps() -> pd.DataFrame:
@@ -262,6 +269,7 @@ def _ensure_market_cap_table() -> pd.DataFrame:
         np.nan,
     )
     merged["source_ref"] = "derived_from_stock_prices_and_ratios"
+    merged["is_simulated"] = 0 if "trade_date" in merged.columns else 1
 
     payload = merged[
         [
@@ -273,6 +281,7 @@ def _ensure_market_cap_table() -> pd.DataFrame:
             "ev_ebitda",
             "trade_date",
             "source_ref",
+            "is_simulated",
         ]
     ].copy()
 
