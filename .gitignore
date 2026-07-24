@@ -52,3 +52,6 @@ output/
 reports/tearsheets/
 reports/sector/
 reports/portfolio/
+*.db
+reports/*.png
+reports/*.html

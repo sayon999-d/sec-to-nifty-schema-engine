@@ -1,4 +1,5 @@
 from .cagr import calculate_cagr, compute_cagr_windows
+from .clustering import build_cluster_outputs
 from .cashflow_kpis import (
     build_capital_allocation_frame,
     capex_intensity,

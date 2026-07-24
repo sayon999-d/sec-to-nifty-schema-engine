@@ -3,3 +3,17 @@ numpy
 openpyxl
 pytest
 python-dotenv
+matplotlib
+streamlit
+plotly
+scikit-learn 
+seaborn 
+scipy 
+fastapi 
+uvicorn 
+openpyxl 
+pytest-html 
+requests 
+ruff 
+black
+reportlab

@@ -417,3 +417,33 @@ Run the full PDF batch compilation with:
 ```bash
 make sprint5-pdf-batch
 ```
+
+---
+
+## Sprint 6 — Clustering, REST API, QA & Sign-Off
+
+Sprint 6 adds a production clustering layer, a FastAPI REST surface, a full test and acceptance harness, and formal project sign-off documentation. The release closes the analytics loop by surfacing cluster summaries, percentile-based quality profiles, and machine-verifiable acceptance controls.
+
+### Overview
+
+- KMeans clustering with sector-aware feature imputation, correlation diagnostics, and outlier reporting.
+- FastAPI endpoints for company profiles, screener filters, sector views, peer comparisons, health checks, and cluster summaries.
+- Expanded QA coverage with API, ETL, KPI, and acceptance runner tests.
+- Final documentation artifacts for analyst operations and sign-off review.
+
+### Key Deliverables & Outputs
+
+- `src/analytics/clustering.py` - KMeans pipeline, elbow plot generation, cluster labels, outlier report, and portfolio statistics.
+- `src/api/` - FastAPI application with `/api/v1/` company, screener, sector, peer, health, and cluster endpoints.
+- `tests/` - Sprint 6 unit, API, and acceptance test suites, including the Sprint 6 assertion runner.
+- `docs/analyst_guide.pdf` - 10-page analyst operations guide covering architecture, dashboard, screener, API, clustering, and troubleshooting.
+- `docs/acceptance_checklist.pdf` - Sprint 6 and project sign-off checklist with deliverables and acceptance gates.
+- `reports/correlation_heatmap.png` - clustering correlation diagnostics.
+- `reports/elbow_plot.png` - elbow method diagnostic chart for KMeans model selection.
+
+### Operational Notes
+
+- Start the API server with `make sprint6-api-start`.
+- Run the clustering pipeline with `make sprint6-clustering`.
+- Execute the complete verification gate with `make sprint6-test-suite`.
+- Generate both documentation PDFs from the Sprint 6 documentation workflow before sign-off review.
