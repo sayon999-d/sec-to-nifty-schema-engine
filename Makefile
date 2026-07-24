@@ -3,7 +3,7 @@ PROJECT_ROOT := $(CURDIR)
 PYTHON ?= ../.venv/bin/python
 export PYTHONPATH := $(PROJECT_ROOT)/src
 
-.PHONY: load ratios test assert sprint2-ratios sprint2-assert sprint3-screen sprint3-peer sprint3-assert sprint4-valuation sprint4-dashboard sprint5-nlp-parse sprint5-nlp-rules sprint5-cashflow sprint5-pdf-batch sprint5-build-all sprint6-clustering sprint6-api-start sprint6-test-suite sprint6-build-all report dashboard api clean
+.PHONY: load ratios test test-all assert sprint2-ratios sprint2-assert sprint3-screen sprint3-peer sprint3-assert sprint4-valuation sprint4-dashboard sprint5-nlp-parse sprint5-nlp-rules sprint5-cashflow sprint5-pdf-batch sprint5-build-all sprint6-clustering sprint6-api-start sprint6-test-suite sprint6-tests sprint6-build-all report dashboard api clean
 
 load:
 	$(PYTHON) src/etl/loader.py load
@@ -16,6 +16,9 @@ sprint2-ratios:
 
 test:
 	$(PYTHON) -m pytest -v tests/etl/test_normaliser.py
+
+test-all:
+	$(PYTHON) -m pytest -v tests/
 
 assert:
 	$(PYTHON) tests/run_sprint1_assertions.py
@@ -64,6 +67,10 @@ sprint6-api-start:
 
 sprint6-test-suite:
 	$(PYTHON) -m pytest tests/ --html=reports/pytest_report.html
+
+sprint6-tests:
+	$(PYTHON) -m pytest -v tests/
+	$(PYTHON) tests/run_sprint6_assertions.py
 
 sprint6-build-all:
 	$(PYTHON) src/analytics/clustering.py

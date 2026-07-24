@@ -446,4 +446,5 @@ Sprint 6 adds a production clustering layer, a FastAPI REST surface, a full test
 - Start the API server with `make sprint6-api-start`.
 - Run the clustering pipeline with `make sprint6-clustering`.
 - Execute the complete verification gate with `make sprint6-test-suite`.
+- Run the full Sprint 6 test and acceptance flow with `make sprint6-tests`.
 - Generate both documentation PDFs from the Sprint 6 documentation workflow before sign-off review.
